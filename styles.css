@@ -15,11 +15,15 @@ body {
 }
 
 .board {
-  background-color: grey;
+  background-color: #1c161e;
+  position: relative;
+  margin: 50px;
+}
+
+/*.backgroundSpace {
   opacity: 0.4;
   filter: alpha(opacity=40);
-  position: relative;
-}
+}*/
 
 .enemy .player {
   position: absolute;
