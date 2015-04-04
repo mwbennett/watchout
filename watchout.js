@@ -34,13 +34,6 @@
     this.id = id;
   };
 
-  Enemy.prototype.move = function(){
-    var currentX = this.x;
-    var currentY = this.y;
-    var newX = Math.floor(Math.random() * options.width);
-    var newY = Math.floor(Math.random() * options.height);
-  };
-
   var enemies = [];
 
   var generateEnemies = function(){
@@ -73,15 +66,59 @@
       .attr('cx', function(d){ return d.x;});
   }
 
-  // functions to do interactions - moving player with mouse
+  var Player = function() {
+    this.x = options.width / 2;
+    this.y = options.height / 2;
+  }
 
-  // function to move all the asteroids
+  var player = [];
+
+  var generatePlayer = function() {
+    player.push(new Player());
+    // debugger;
+    d3.select('.board').selectAll('.player')
+      .data(player)
+      .enter().append('svg:circle')
+      .attr('cx', function(d) { return d.x; })
+      .attr('cy', function(d) { return d.y; })
+      .attr('r', 25)
+      .classed('player', true);
+  }
+
+  // d3.select('.board').selectAll('.player')
+  //   .data(player)
+  //   .enter().append('svg:circle')
+  //   .attr('cx', function(d) { return d.x; })
+  //   .attr('cy', function(d) { return d.y; })
+  //   .call(drag);
+
+  generatePlayer();
+
+  var drag = d3.behavior.drag()
+      .origin(function(d) { return d; })
+      .on("dragstart", dragStarted)
+      .on("drag", dragging)
+      .on("dragend", dragEnded);
+
+  var dragStarted = function (d) {
+    d3.event.sourceEvent.stopPropagation();
+    d3.select(this).classed("dragging", true);
+  }
+
+  var dragging = function (d) {
+    d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+  }
+
+  var dragEnded = function (d) {
+    d3.select(this).classed("dragging", false);
+  }
+
+
+  // functions to do interactions - moving player with mouse
 
   // functions to keep and reset score
 
   // some set interval function to execute steps in the game
   setInterval(updateEnemies, 2000);
-
-
 
 })();

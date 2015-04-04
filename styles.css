@@ -4,20 +4,32 @@
 Feel free to use it if you like. */
 
 body {
-  background-color: black;
+  background-color: #1c161e;
+  background-image: url('stars.jpeg');
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.scoreboard {
+  color: white;
 }
 
 .board {
-  background-color: white;
+  background-color: grey;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
   position: relative;
 }
 
-.enemy {
-  color: green;
+.enemy .player {
   position: absolute;
   z-index: 1;
+  opacity: 1;
+}
+.enemy {
+  fill: white;
 }
 
 .player {
-
+  fill: red;
 }
