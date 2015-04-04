@@ -6,106 +6,120 @@
     width: 700,
     height: 450,
     enemies: 30,
-    padding: 20
+    padding: 20,
+    radius: 5
   };
 
   // score/statistics
   var scores = {
     currentScore: 0,
-    highScore: 0
+    highScore: 0,
+    collisions: 0
   }
 
   var enemies = [];
-  var player = [];
-
+  var players = [];
+  var asteroids, spaceship;
 
   // create board
-  var gameBoard = d3.select('body')
-    .append('svg:svg')
+  var gameBoard = d3.select('body').append('svg')
     .attr('width', options.width)
     .attr('height', options.height)
-    .classed('board', true)
-    .classed('backgroundSpace', true);
+    .classed('board', true);
 
-  // var x = d3.scale.linear().domain([0,100]).range([0,options.width]);
-  // var y = d3.scale.linear().domain([0,100]).range([0,options.height]);
-  // create enemies and player
-
-  var Enemy = function(id){
-    this.x = Math.floor(Math.random() * options.width);
-    this.y = Math.floor(Math.random() * options.height);
-    this.id = id;
+  var generatePosition = function(dimension) {
+    return Math.max(Math.floor(Math.random() * dimension) - (options.radius + 5), options.radius + 5);
   };
+
+  var dragmove = function(d) {
+    d3.select(this)
+      .attr("cx", d.x = Math.max(options.radius, Math.min(options.width - options.radius, d3.event.x)))
+      .attr("cy", d.y = Math.max(options.radius, Math.min(options.height - options.radius, d3.event.y)));
+  }
+
+  var drag = d3.behavior.drag()
+    .on('drag', dragmove);
 
   var generateEnemies = function(){
     for (var i = 0; i < options.enemies; i++){
-      var enemy = new Enemy(i);
-      enemies.push(enemy);
+      enemies.push({
+        id: i,
+        x: generatePosition(options.width),
+        y: generatePosition(options.height),
+      });
     }
-    d3.select('.board').selectAll('svg')
-      .data(enemies)
-      .enter().append('svg:circle')
-      .attr('cy', function(d){ return d.y;})
-      .attr('cx', function(d){ return d.x;})
-      .attr('r', 10)
-      .classed('enemy', true);
-  }
+    asteroids = gameBoard.selectAll('.enemy')
+      .data(enemies);
+    asteroids.enter().append('image')
+      .classed('enemy', true)
+      .attr('xlink:href', 'asteroid.png')
+      .attr('height', 2 * options.radius)
+      .attr('width', 2 * options.radius)
+      .attr('y', function(d){ return d.y;})
+      .attr('x', function(d){ return d.x;});
+  };
 
   // update all enemies
-  var updateEnemies = function(){
-    for (var i = 0; i < enemies.length; i++){
-      enemies[i].x = Math.floor(Math.random() * options.width);
-      enemies[i].y = Math.floor(Math.random() * options.height);
-    }
-    d3.selectAll('.enemy')
-      .transition()
+  var updateEnemies = function() {
+    asteroids.transition()
       .duration(1000)
-      .attr('cy', function(d){ return d.y;})
-      .attr('cx', function(d){ return d.x;});
-  }
+      .attr('y', function(d){ return d.y = generatePosition(options.height);})
+      .attr('x', function(d){ return d.x = generatePosition(options.width);});
+  };
 
   var Player = function() {
     this.x = options.width / 2;
     this.y = options.height / 2;
-  }
-
-
-  var svgPlayer = d3.select('.board').select('.player');
-
-  var drag = d3.behavior.drag()
-    .on('drag', function() {
-      debugger;
-      svgPlayer.attr('cx', d3.event.x).attr('cy', d3.event.y)
-    });
-
-  var dragging = function (d) {
-    d3.select(this)
-      .attr('cx', d.x = d3.event.dx)
-      .attr('cy', d.y = d3.event.dy);
-  }
+  };
 
   var generatePlayer = function() {
-    player.push(new Player());
-    d3.select('.board').selectAll('.player')
-      .data(player)
-      .enter().append('svg:circle')
+    players.push(new Player());
+    spaceship = gameBoard.selectAll('.player')
+      .data(players);
+    spaceship.enter().append('circle')
+      .classed('player', true)
+      .attr('r', options.radius)
       .attr('cx', function(d) { return d.x; })
       .attr('cy', function(d) { return d.y; })
-      .attr('r', 25)
-      .call(drag)
-      .classed('player', true);
-  }
+      .call(drag);
+  };
+
+  var detectCollisions = function(){
+    var playerObj = players[0];
+    var collided = false;
+    for (var i = 0; i < enemies.length; i++){
+      var dx = playerObj.x - enemies[i].x;
+      var dy = playerObj.y - enemies[i].y;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < options.radius * 2){
+        collided = true;
+      }
+    }
+    if (collided) {
+      scores.collisions++;
+      scores.currentScore = 0;
+      console.log('collision!');
+    }
+  };
+
+  var incrementScore = function() {
+    if (scores.currentScore > scores.highScore){
+      d3.selectAll('.high').select('span')
+        .text(scores.highScore = scores.currentScore);
+    }
+    d3.selectAll('.current').select('span')
+      .text(scores.currentScore++);
+    d3.selectAll('.collisions').select('span')
+      .text(scores.collisions);
+  };
 
 
   generateEnemies();
 
   generatePlayer();
 
-  // functions to do interactions - moving player with mouse
-
-  // functions to keep and reset score
-
   // some set interval function to execute steps in the game
   setInterval(updateEnemies, 2000);
-
+  setInterval(incrementScore, 100);
+  setInterval(detectCollisions, 50);
 })();
