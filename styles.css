@@ -12,12 +12,13 @@ body {
 
 .scoreboard {
   color: white;
+  padding: 20px;
 }
 
 .board {
-  background-color: #1c161e;
+  background-color: rgba(28,22,30, 0.5);
+  margin: 40px;
   position: relative;
-  margin: 50px;
 }
 
 /*.backgroundSpace {

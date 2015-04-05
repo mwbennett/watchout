@@ -7,7 +7,7 @@
     height: 450,
     enemies: 30,
     padding: 20,
-    radius: 5
+    radius: 14
   };
 
   // score/statistics
@@ -19,6 +19,9 @@
 
   var enemies = [];
   var players = [];
+  var hitEnemies = [];
+  var hitX = [];
+  var hitY = [];
   var asteroids, spaceship;
 
   // create board
@@ -60,66 +63,61 @@
   };
 
   // update all enemies
-  var updateEnemies = function() {
-    asteroids.transition()
-      .duration(1000)
+  var update = function(element) {
+    element.transition().duration(2000).ease('cubic-in-out')
       .attr('y', function(d){ return d.y = generatePosition(options.height);})
-      .attr('x', function(d){ return d.x = generatePosition(options.width);});
-  };
-
-  var Player = function() {
-    this.x = options.width / 2;
-    this.y = options.height / 2;
+      .attr('x', function(d){ return d.x = generatePosition(options.width);})
+      .each('end', function() { update(d3.select(this)); });
   };
 
   var generatePlayer = function() {
-    players.push(new Player());
-    spaceship = gameBoard.selectAll('.player')
-      .data(players);
-    spaceship.enter().append('circle')
-      .classed('player', true)
+    players.push({
+      x: options.width / 2,
+      y: options.height / 2
+    });
+    spaceship = gameBoard.selectAll('.player').data(players);
+    spaceship.enter().append('circle').classed('player', true)
       .attr('r', options.radius)
       .attr('cx', function(d) { return d.x; })
       .attr('cy', function(d) { return d.y; })
       .call(drag);
   };
 
+  var lastCollision = false;
+
   var detectCollisions = function(){
     var playerObj = players[0];
-    var collided = false;
+    var collision = false;
+
     for (var i = 0; i < enemies.length; i++){
-      var dx = playerObj.x - enemies[i].x;
-      var dy = playerObj.y - enemies[i].y;
-      var distance = Math.sqrt(dx * dx + dy * dy);
+      var dx = playerObj.x - (enemies[i].x + options.radius);
+      var dy = playerObj.y - (enemies[i].y + options.radius);
+      var distance = Math.sqrt((dx * dx) + (dy * dy));
       if (distance < options.radius * 2){
-        collided = true;
+        collision = true;
       }
     }
-    if (collided) {
+    if (collision !== lastCollision) {
+      lastCollision = collision;
       scores.collisions++;
       scores.currentScore = 0;
-      console.log('collision!');
     }
   };
 
   var incrementScore = function() {
     if (scores.currentScore > scores.highScore){
-      d3.selectAll('.high').select('span')
-        .text(scores.highScore = scores.currentScore);
+      d3.selectAll('.high span').text(scores.highScore = scores.currentScore);
     }
-    d3.selectAll('.current').select('span')
-      .text(scores.currentScore++);
-    d3.selectAll('.collisions').select('span')
-      .text(scores.collisions);
+    d3.selectAll('.current span').text(scores.currentScore++);
+    d3.selectAll('.collisions span').text(scores.collisions);
   };
 
-
   generateEnemies();
-
   generatePlayer();
 
   // some set interval function to execute steps in the game
-  setInterval(updateEnemies, 2000);
+  // update(asteroids);
   setInterval(incrementScore, 100);
-  setInterval(detectCollisions, 50);
+  // debugger;
+  d3.timer(detectCollisions);
 })();
