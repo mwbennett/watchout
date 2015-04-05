@@ -97,10 +97,12 @@
         collision = true;
       }
     }
-    if (collision !== lastCollision) {
+    if (lastCollision !== collision) {
       lastCollision = collision;
-      scores.collisions++;
-      scores.currentScore = 0;
+      if (collision){
+        scores.collisions++;
+        scores.currentScore = 0;
+      }
     }
   };
 
@@ -116,8 +118,7 @@
   generatePlayer();
 
   // some set interval function to execute steps in the game
-  // update(asteroids);
+  update(asteroids);
   setInterval(incrementScore, 100);
-  // debugger;
   d3.timer(detectCollisions);
 })();
